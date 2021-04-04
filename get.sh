@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 
-if [ ! -f $1 ] || [ $# -ne 1 ]
+echoerr() { echo "$@" 1>&2; }
+
+if [ ! -f $1 ] || ([ $# -ne 1 ] && [ $# -ne 2 ])
 then
-    echo Queries the github graphql API
-    echo "Usage:"
-    echo
-    echo "$0 somefile.gql"
+    echoerr Queries the github graphql API
+    echoerr "Usage:"
+    echoerr
+    echoerr "$0 somefile.gql"
 fi
 
 # read the gql query from the file named in the argument
@@ -14,9 +16,10 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 TOKEN=$(cat $DIR/token)
 QUERY=$(jq -n \
            --arg q "$(cat $1 | tr -d '\n')" \
-           '{ query: $q }')
+           --arg v "$(cat $2)" \
+           '{ query: $q, variables: $v }')
 
-curl -v 'https://api.opensea.io/graphql/' \
+curl 'https://api.opensea.io/graphql/' \
   -H 'authority: api.opensea.io' \
   -H 'accept: */*' \
   -H 'x-build-id: GBEenpG3YHeDfvEqWa7R0' \
